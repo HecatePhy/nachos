@@ -24,6 +24,22 @@
 					// execution stack, for detecting 
 					// stack overflows
 
+/* @date   3 Oct 2019
+ * @target lab1-exercise3
+ * @brief  tool function: find the first available tid by traversing tid_mask
+ * */
+int alloc_tid(){
+    int ctid = -1;
+    for(int i=1; i<=128; i++) {
+        if(tid_mask[i] == 0) {
+	    ctid = i;
+	    break;
+	}
+    }
+
+    return ctid;
+}
+
 //----------------------------------------------------------------------
 // Thread::Thread
 // 	Initialize a thread control block, so that we can then call
@@ -34,10 +50,22 @@
 
 Thread::Thread(char* threadName)
 {
+    /* @date   3 Oct 2019
+     * @target lab1-exercise3&4 
+     * @brief  get a tid and set tid_mask; or cannot create this thread
+     * */
+    tid = alloc_tid();
+    if(tid == -1) {
+	printf("THE NUM OF THREADS CANNOT EXCEED 128: NO THREAD CREATED\n");
+    } 
+    ASSERT(tid != -1);
+    tid_mask[tid] = 1;
+
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -60,6 +88,13 @@ Thread::~Thread()
     DEBUG('t', "Deleting thread \"%s\"\n", name);
 
     ASSERT(this != currentThread);
+
+    /* @date   3 Oct 2019
+     * @target lab1-exercise3
+     * @brief  release corresponding tid_mask term
+     * */
+    tid_mask[this->tid] = 0;
+
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
 }

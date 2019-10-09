@@ -29,6 +29,13 @@ extern Interrupt *interrupt;			// interrupt status
 extern Statistics *stats;			// performance metrics
 extern Timer *timer;				// the hardware alarm clock
 
+/* @date   3 Oct 2019
+ * @target lab1-exercise3
+ * @brief  define macro and array for tid management: tid from 1 to 128
+ * */
+#define MAX_TID 128
+extern int tid_mask[129];
+
 #ifdef USER_PROGRAM
 #include "machine.h"
 extern Machine* machine;	// user program memory and registers

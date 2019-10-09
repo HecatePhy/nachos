@@ -19,6 +19,12 @@ Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
 
+/* @date   3 Oct 2019
+ * @target lab1-exercise3
+ * @brief  define tid_mask for tid management: tid 1 to 128
+ * */
+int tid_mask[129];
+
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -80,6 +86,14 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
+
+    /* @date   3 Oct 2019
+     * @target lab1-exercise3
+     * @brief  initialize tid_mask as not occupied
+     * */
+    for(int i=0; i<=128; i++){
+	tid_mask[i] = 0;
+    }
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program

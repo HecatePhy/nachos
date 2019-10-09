@@ -102,6 +102,13 @@ class Thread {
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
 
+    /* @date   3 Oct 2019
+     * @target lab1-exercise3
+     * @brief  public methods to get private uid tid
+     * */
+    int getTid() { return tid; }
+    int getUid() { return uid; }
+
   private:
     // some of the private data for this class is listed above
     
@@ -114,6 +121,12 @@ class Thread {
     void StackAllocate(VoidFunctionPtr func, void *arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()
+    /* @date   3 Oct 2019
+     * @target lab1-exercise3
+     * @brief  add private members: uid tid
+     * */
+    int uid;
+    int tid;
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 
@@ -121,6 +134,7 @@ class Thread {
 // while executing kernel code.
 
     int userRegisters[NumTotalRegs];	// user-level CPU register state
+
 
   public:
     void SaveUserState();		// save user-level register state
