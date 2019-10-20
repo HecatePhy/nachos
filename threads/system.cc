@@ -20,10 +20,11 @@ Timer *timer;				// the hardware timer device,
 					// for invoking context switches
 
 /* @date   3 Oct 2019
- * @target lab1-exercise3
+ * @target lab1-exercise3&4
  * @brief  define tid_mask for tid management: tid 1 to 128
  * */
 int tid_mask[129];
+Thread* ttable[129];
 
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;

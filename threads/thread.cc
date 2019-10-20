@@ -60,6 +60,7 @@ Thread::Thread(char* threadName)
     } 
     ASSERT(tid != -1);
     tid_mask[tid] = 1;
+    ttable[tid] = this;
 
     name = threadName;
     stackTop = NULL;
@@ -90,10 +91,11 @@ Thread::~Thread()
     ASSERT(this != currentThread);
 
     /* @date   3 Oct 2019
-     * @target lab1-exercise3
+     * @target lab1-exercise3&4
      * @brief  release corresponding tid_mask term
      * */
     tid_mask[this->tid] = 0;
+    ttable[this->tid] = NULL;
 
     if (stack != NULL)
 	DeallocBoundedArray((char *) stack, StackSize * sizeof(int));
