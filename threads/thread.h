@@ -81,7 +81,7 @@ class Thread {
     void *machineState[MachineStateSize];  // all registers except for stackTop
 
   public:
-    Thread(char* debugName);		// initialize a Thread 
+    Thread(char* debugName, int prior);		// initialize a Thread @modified for lab2-exercise3
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete 
@@ -103,11 +103,12 @@ class Thread {
     void Print() { printf("%s, ", name); }
 
     /* @date   3 Oct 2019
-     * @target lab1-exercise3
-     * @brief  public methods to get private uid tid
+     * @target lab1-exercise3 lab2-exercise3
+     * @brief  public methods to get private uid tid priority
      * */
     int getTid() { return tid; }
     int getUid() { return uid; }
+    int getPriority() { return priority; }
 
   private:
     // some of the private data for this class is listed above
@@ -122,11 +123,12 @@ class Thread {
     					// Allocate a stack for thread.
 					// Used internally by Fork()
     /* @date   3 Oct 2019
-     * @target lab1-exercise3
+     * @target lab1-exercise3 lab2-exercise3
      * @brief  add private members: uid tid
      * */
     int uid;
     int tid;
+    int priority;
 
 #ifdef USER_PROGRAM
 // A thread running a user program actually has *two* sets of CPU registers -- 

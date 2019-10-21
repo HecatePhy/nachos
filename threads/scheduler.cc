@@ -56,7 +56,12 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+    /* @date   3 Oct 2019
+     * @target lab2-exercise3
+     * @brief  Append --> SortInsert queue by priority
+     * */
+    //readyList->Append((void *)thread);
+    readyList->SortedInsert((void *)thread, thread->getPriority());
 }
 
 //----------------------------------------------------------------------

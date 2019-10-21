@@ -48,10 +48,10 @@ int alloc_tid(){
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName)
+Thread::Thread(char* threadName, int prior)
 {
     /* @date   3 Oct 2019
-     * @target lab1-exercise3&4 
+     * @target lab1-exercise3&4 lab2-exercise3 
      * @brief  get a tid and set tid_mask; or cannot create this thread
      * */
     tid = alloc_tid();
@@ -63,6 +63,7 @@ Thread::Thread(char* threadName)
     ttable[tid] = this;
 
     name = threadName;
+    priority = prior;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
