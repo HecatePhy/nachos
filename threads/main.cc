@@ -95,6 +95,15 @@ main(int argc, char **argv)
         testnum = atoi(argv[1]);
         argCount++;
         break;
+      /* @date   3 Oct 2019
+       * @target lab1-exercise4
+       * @brief  add TS command
+       * */
+      case 'S':
+	if(argv[0][0] == 'T'){
+	    testnum = 3;
+	}
+	break;
       default:
         testnum = 1;
         break;

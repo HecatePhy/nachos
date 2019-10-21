@@ -54,6 +54,38 @@ ThreadTest1()
 }
 
 //----------------------------------------------------------------------
+// ThreadTest2
+//      test thread control by invoke ThreadTest1
+//      test TS command by output ttable
+// @date   3 Oct 2019
+// @target lab1-exercise4
+// @brief  new TS threadtest with testnum 3
+//----------------------------------------------------------------------
+
+void
+TS()
+{
+    printf("---TS---\n");
+    for(int i=1; i<=MAX_TID; i++){
+        if(tid_mask[i]){
+	    printf("thread tid: %d user: %d name: %s\n", ttable[i]->getTid(), ttable[i]->getUid(), ttable[i]->getName());
+	}
+    }
+}
+
+void
+ThreadTest2()
+{
+    DEBUG('t', "Entering ThreadTest2");
+
+    for(int i=0; i<=100; i++){
+        Thread *t = new Thread("forked thread");
+    }
+
+    TS();
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -64,6 +96,9 @@ ThreadTest()
     switch (testnum) {
     case 1:
 	ThreadTest1();
+	break;
+    case 3:
+	ThreadTest2();
 	break;
     default:
 	printf("No test specified.\n");
