@@ -87,6 +87,11 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
+    /* @date   3 Oct 2019
+     * @target lab2-challenge1
+     * @brief  a flag for a normal timer -- set by "-rr"
+     * */
+    bool roundRobin = FALSE;
 
     /* @date   3 Oct 2019
      * @target lab1-exercise3
@@ -122,6 +127,9 @@ Initialize(int argc, char **argv)
 						// number generator
 	    randomYield = TRUE;
 	    argCount = 2;
+	} else if (!strcmp(*argv, "-rr")) {
+	    printf("set a normal timer\n");
+	    roundRobin = TRUE;                  // HecAtePhy: turn on normal timer
 	}
 #ifdef USER_PROGRAM
 	if (!strcmp(*argv, "-s"))
@@ -150,6 +158,10 @@ Initialize(int argc, char **argv)
     scheduler = new Scheduler();		// initialize the ready queue
     if (randomYield)				// start the timer (if needed)
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+
+    // HecAtePhy: start the normal timer
+    if (roundRobin)
+	timer = new Timer(TimerInterruptHandler, 0, false);
 
     threadToBeDestroyed = NULL;
 

@@ -63,7 +63,8 @@ Scheduler::ReadyToRun (Thread *thread)
     //readyList->Append((void *)thread);
     readyList->SortedInsert((void *)thread, thread->getPriority());
     if(thread != currentThread && thread->getPriority() > currentThread->getPriority()){
-        currentThread->Yield();
+        printf("preemptive\n");
+	currentThread->Yield();
     }
 }
 

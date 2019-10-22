@@ -86,6 +86,55 @@ ThreadTest2()
 }
 
 //----------------------------------------------------------------------
+// ThreadTest4
+//      test priority & preemptive
+// @date   3 Oct 2019
+// @target lab2-exercise3
+// @brief  scheduler test by SimpleThread
+//----------------------------------------------------------------------
+
+void
+ThreadTest4()
+{
+    DEBUG('t', "Entering ThreadTest4");
+
+    // 
+}
+
+//----------------------------------------------------------------------
+// ThreadTest5
+//      test round-robin with TIME_SLICE 100
+//      timer ticks advance by manual setlevel
+// @date   3 Oct 2019
+// @target lab2-challenge1
+// @brief  new thread which loop and setlevel
+//----------------------------------------------------------------------
+
+void
+TickThread(int n)
+{
+    for (int i = 1; i <= n; i++) {
+        printf("*** thread %d with priority %d looped %d times\n", currentThread->getTid(), currentThread->getPriority(), i);
+	interrupt->SetLevel(IntOn);
+	interrupt->SetLevel(IntOff);
+    }
+}
+
+void
+ThreadTest5()
+{
+    DEBUG('t', "Entering ThreadTest5");
+
+    Thread *t1 = new Thread("tickthread1", 2);
+    Thread *t2 = new Thread("tickthread2", 4);
+    Thread *t3 = new Thread("tickthread3", 8);
+
+    t1->Fork(TickThread, 120);
+    t2->Fork(TickThread, 120);
+    t3->Fork(TickThread, 120);
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -99,6 +148,12 @@ ThreadTest()
 	break;
     case 3:
 	ThreadTest2();
+	break;
+    case 4:
+	ThreadTest4();
+	break;
+    case 5:
+	ThreadTest5();
 	break;
     default:
 	printf("No test specified.\n");

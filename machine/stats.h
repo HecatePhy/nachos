@@ -57,4 +57,10 @@ class Statistics {
 #define NetworkTime 	100   	// time to send or receive one packet
 #define TimerTicks 	100    	// (average) time between timer interrupts
 
+/* @date   3 Oct 2019
+ * @target lab2-challenge1
+ * @brief  time slice size
+ * */
+#define TIME_SLICE 100
+
 #endif // STATS_H
