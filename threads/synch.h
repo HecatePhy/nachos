@@ -80,6 +80,13 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define
+
+    /* @date   13 Oct 2019
+     * @target lab3-exercise3
+     * @brief  define a mutex and a owner
+     * */
+    Semaphore* lock;
+    Thread* owner;
 };
 
 // The following class defines a "condition variable".  A condition
