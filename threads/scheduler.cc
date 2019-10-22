@@ -58,10 +58,13 @@ Scheduler::ReadyToRun (Thread *thread)
     thread->setStatus(READY);
     /* @date   3 Oct 2019
      * @target lab2-exercise3
-     * @brief  Append --> SortInsert queue by priority
+     * @brief  Append --> SortInsert queue by priority & preemptive
      * */
     //readyList->Append((void *)thread);
     readyList->SortedInsert((void *)thread, thread->getPriority());
+    if(thread != currentThread && thread->getPriority() > currentThread->getPriority()){
+        currentThread->Yield();
+    }
 }
 
 //----------------------------------------------------------------------
