@@ -147,4 +147,52 @@ class Condition {
      * */
     List* wqueue;
 };
+
+/* @date   13 Oct 2019
+ * @target lab3-challege1
+ * @brief  Barrier def
+ * */
+
+class Barrier {
+  public:
+    Barrier(char* debugName, int thr);
+
+    ~Barrier();
+    char* getName() { return (name); }
+
+    void setBarrier(Lock *barrierLock);
+  
+  private:
+    char* name;
+    int threshold;
+    int thread_cnt;
+    // Lock* barrierLock;
+    Condition* condition;
+};
+
+/* @date   13 Oct 2019
+ * @target lab3-challenge2
+ * @brief  RWLock def
+ * */
+
+class RWLock {
+  public:
+    RWLock(char* debugName);
+
+    ~RWLock();
+    char* getName() { return (name); }
+    Thread* getLocker() { return wlock->getOwner(); }
+
+    void racquire();
+    void rrelease();
+    void wacquire();
+    void wrelease();
+
+  private:
+    char* name;
+    Lock* rlock;
+    Lock* wlock;
+    int rcnt;
+};
+
 #endif // SYNCH_H

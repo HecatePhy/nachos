@@ -160,8 +160,7 @@ Initialize(int argc, char **argv)
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
 
     // HecAtePhy: start the normal timer
-    if (roundRobin)
-	timer = new Timer(TimerInterruptHandler, 0, false);
+    if (roundRobin) timer = new Timer(TimerInterruptHandler, 0, false);
 
     threadToBeDestroyed = NULL;
 

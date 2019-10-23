@@ -151,21 +151,21 @@ Condition::~Condition()
     delete wqueue;    
 }
 
-void Condition::Wait(Lock* cLock) 
+void Condition::Wait(Lock* conditionLock) 
 {
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    ASSERT(cLock->getOwner() == currentThread);
-    cLock->Release();
+    ASSERT(conditionLock->getOwner() == currentThread);
+    conditionLock->Release();
     wqueue->Append(currentThread);
     currentThread->Sleep();
-    cLock->Acquire();
+    conditionLock->Acquire();
     (void) interrupt->SetLevel(oldLevel);
 }
 
-void Condition::Signal(Lock* cLock) 
+void Condition::Signal(Lock* conditionLock) 
 { 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    ASSERT(cLock->getOwner() == currentThread);
+    ASSERT(conditionLock->getOwner() == currentThread);
     if(!wqueue->IsEmpty()) {
         Thread *fthread = (Thread*) wqueue->Remove();
 	scheduler->ReadyToRun(fthread);
@@ -173,12 +173,111 @@ void Condition::Signal(Lock* cLock)
     (void) interrupt->SetLevel(oldLevel);
 }
 
-void Condition::Broadcast(Lock* cLock) 
+void Condition::Broadcast(Lock* conditionLock) 
 { 
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    ASSERT(cLock->getOwner() == currentThread);
+    ASSERT(conditionLock->getOwner() == currentThread);
     while(!wqueue->IsEmpty()) {
-        Signal(cLock);
+        Signal(conditionLock);
     }
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+/* @date   13 Oct 2019
+ * @target lab3-challenge1
+ * @brief  implement Barrier with Condition
+ * */
+
+Barrier::Barrier(char* debugName, int thr)
+{
+    name = debugName;
+    condition = new Condition("barriercondition");
+    thread_cnt = 0;
+    threshold = thr;
+}
+
+Barrier::~Barrier()
+{
+    delete condition;
+}
+
+void Barrier::setBarrier(Lock *barrierLock)
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    ASSERT(barrierLock->getOwner() == currentThread);
+    thread_cnt++;
+    if(thread_cnt >= threshold) {
+    	condition->Broadcast(barrierLock);
+    }
+    else {
+        condition->Wait(barrierLock);
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+/* @date   13 Oct 2019
+ * @target lab3-challenge2
+ * @brief  implement read/write block with Semaphore
+ * */
+
+RWLock::RWLock(char* debugName)
+{
+    name = debugName;
+    wlock = new Lock("wlock");
+    rlock = new Lock("rlock");
+    rcnt = 0;
+}
+
+RWLock::~RWLock()
+{
+    delete wlock;
+    delete rlock;
+}
+
+void RWLock::racquire()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    if(wlock->getOwner() == NULL) {
+	rlock->Acquire();
+	rcnt++;
+	rlock->Release();
+    }
+    else {
+	printf("thread %s %d fail to read\n", currentThread->getName(), currentThread->getTid());
+        currentThread->Yield();
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+void RWLock::rrelease()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    rlock->Acquire();
+    rcnt--;
+    rlock->Release();
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+void RWLock::wacquire()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    if(rcnt == 0 && wlock->getOwner() == NULL) {
+	printf("thread %s %d acquire wlock\n", currentThread->getName(), currentThread->getTid());
+	wlock->Acquire();
+    }
+    else {
+	printf("thread %s %d fail to write: ", currentThread->getName(), currentThread->getTid());
+        if(wlock->getOwner() != NULL) printf("src is owned by %s %d\n", wlock->getOwner()->getName(), wlock->getOwner()->getTid());
+	else printf("src is owned by reader\n");
+	currentThread->Yield();
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+void RWLock::wrelease()
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    ASSERT(wlock->getOwner() == currentThread);
+    wlock->Release();
     (void) interrupt->SetLevel(oldLevel);
 }

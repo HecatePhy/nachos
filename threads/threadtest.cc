@@ -268,6 +268,131 @@ ThreadTest8()
 }
 
 //----------------------------------------------------------------------
+// ThreadTest9
+//      test Barrier
+// @date   13 Oct 2019
+// @target lab3-challenge1
+// @brief  with Lock
+//----------------------------------------------------------------------
+
+Lock *barrierLock;
+Barrier *tbarrier;
+int bcnt;
+
+void 
+barrierThread(int val)
+{
+    barrierLock->Acquire();
+    printf("thread %s %d forked\n", currentThread->getName(), currentThread->getTid());
+    tbarrier->setBarrier(barrierLock);
+    bcnt++;
+    if(bcnt >= val) {
+        printf("thread %s %d continue\n", currentThread->getName(), currentThread->getTid());
+    }
+    else {
+        printf("thread %s %d wait for barrier\n", currentThread->getName(), currentThread->getTid());
+    }
+    barrierLock->Release();
+}
+
+void
+ThreadTest9()
+{
+    DEBUG('t', "Entering ThreadTest9");
+
+    barrierLock = new Lock("barrierLock");
+    tbarrier = new Barrier("barrier", 4);
+    bcnt = 0;
+
+    Thread *t1 = new Thread("bthread1", 4);
+    Thread *t2 = new Thread("bthread2", 4);
+    Thread *t3 = new Thread("bthread3", 4);
+    Thread *t4 = new Thread("bthread4", 4);
+    Thread *t5 = new Thread("bthread5", 4);
+
+    t1->Fork(barrierThread, 4);
+    t2->Fork(barrierThread, 4);
+    t3->Fork(barrierThread, 4);
+    t4->Fork(barrierThread, 4);
+    t5->Fork(barrierThread, 4);
+}
+//----------------------------------------------------------------------
+// ThreadTest10
+//      test read/write lock
+// @date   13 Oct 2019
+// @target lab3-challenge2
+// @brief  
+//----------------------------------------------------------------------
+
+RWLock *rwlock;
+
+void 
+ReaderThread(int val)
+{
+    for(int i = 0; i < val; i++) {
+        rwlock->racquire();
+	printf("thread %s %d read\n", currentThread->getName(), currentThread->getTid());
+	rwlock->rrelease();
+	currentThread->Yield();
+    }
+}
+
+void
+WriterThread(int val)
+{
+    for(int i = 0; i < val; i++) {
+        rwlock->wacquire();
+        if(rwlock->getLocker() == currentThread) {
+            printf("thread %s %d write\n", currentThread->getName(), currentThread->getTid());
+            rwlock->wrelease();
+        }
+    }
+}
+
+void
+ThreadTest10()
+{
+    DEBUG('t', "Entering ThreadTest10");
+
+    rwlock = new RWLock("rwlock");
+
+    Thread *t1 = new Thread("reader1", 4);
+    Thread *t2 = new Thread("writer1", 4);
+    Thread *t3 = new Thread("reader2", 4);
+    Thread *t4 = new Thread("reader3", 4);
+    Thread *t5 = new Thread("writer2", 4);
+
+    t1->Fork(ReaderThread, 16);
+    t2->Fork(WriterThread, 16);
+    t3->Fork(ReaderThread, 16);
+    t4->Fork(ReaderThread, 16);
+    t5->Fork(WriterThread, 16);
+}
+
+//----------------------------------------------------------------------
+// ThreadTest11
+//      quiz1 threadtest
+//----------------------------------------------------------------------
+
+void 
+SimpleThread4(int which)
+{
+    for(int i = 0; i < 100; i++) {
+        printf("I'm %s\n", currentThread->getName());
+	interrupt->OneTick();
+    }
+}
+
+void
+ThreadTest11()
+{
+    Thread *t = new Thread("hellokitty", 4);
+    t->Fork(SimpleThread4, 1);
+    Thread *t1 = new Thread("helloworld", 4);
+    t1->Fork(SimpleThread4, 1);
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -296,6 +421,15 @@ ThreadTest()
 	break;
     case 8:
 	ThreadTest8();
+	break;
+    case 9:
+	ThreadTest9();
+	break;
+    case 10:
+	ThreadTest10();
+	break;
+    case 11:
+	ThreadTest11();
 	break;
     default:
 	printf("No test specified.\n");
