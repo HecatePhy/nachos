@@ -103,7 +103,7 @@ Semaphore::V()
 
 /* @date   13 Oct 2019
  * @target lab3-exercise3
- * @brief  complete Lock with Semaphore & complete Condition with Lock
+ * @brief  complete Lock with Semaphore
  * */
 
 Lock::Lock(char* debugName) 
@@ -135,8 +135,50 @@ void Lock::Release()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-Condition::Condition(char* debugName) { }
-Condition::~Condition() { }
-void Condition::Wait(Lock* conditionLock) { ASSERT(FALSE); }
-void Condition::Signal(Lock* conditionLock) { }
-void Condition::Broadcast(Lock* conditionLock) { }
+/* @date   13 Oct 2019
+ * @target lab3-exercise3
+ * @brief  complete Condition with List and para Lock
+ * */
+
+Condition::Condition(char* debugName) 
+{
+    name = debugName;
+    wqueue = new List;
+}
+
+Condition::~Condition() 
+{
+    delete wqueue;    
+}
+
+void Condition::Wait(Lock* cLock) 
+{
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    ASSERT(cLock->getOwner() == currentThread);
+    cLock->Release();
+    wqueue->Append(currentThread);
+    currentThread->Sleep();
+    cLock->Acquire();
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+void Condition::Signal(Lock* cLock) 
+{ 
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    ASSERT(cLock->getOwner() == currentThread);
+    if(!wqueue->IsEmpty()) {
+        Thread *fthread = (Thread*) wqueue->Remove();
+	scheduler->ReadyToRun(fthread);
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}
+
+void Condition::Broadcast(Lock* cLock) 
+{ 
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);
+    ASSERT(cLock->getOwner() == currentThread);
+    while(!wqueue->IsEmpty()) {
+        Signal(cLock);
+    }
+    (void) interrupt->SetLevel(oldLevel);
+}

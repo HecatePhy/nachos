@@ -76,6 +76,7 @@ class Lock {
 					// holds this lock.  Useful for
 					// checking in Release, and in
 					// Condition variable ops below.
+    Thread* getOwner(){ return owner; } // HecAtePhy: public tool
 
   private:
     char* name;				// for debugging
@@ -139,5 +140,11 @@ class Condition {
   private:
     char* name;
     // plus some other stuff you'll need to define
+
+    /* @date   13 Oct 2019
+     * @target lab3-exercise3
+     * @brief  waiting queue
+     * */
+    List* wqueue;
 };
 #endif // SYNCH_H
