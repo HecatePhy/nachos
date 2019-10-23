@@ -13,6 +13,8 @@
 #include "system.h"
 #include "elevatortest.h"
 
+#include "synch.h" // HecAtePhy: add sync header
+
 // testnum is set in main.cc
 int testnum = 1;
 
@@ -135,6 +137,137 @@ ThreadTest5()
 }
 
 //----------------------------------------------------------------------
+// ThreadTest6
+//      Lock solution to producer-consumer
+// @date   13 Oct 2019
+// @target lab3-exercise3&4
+// @brief  realize producer-consumer by Ac&Rl when produce/consume
+//----------------------------------------------------------------------
+
+void 
+ThreadTest6()
+{}
+
+//----------------------------------------------------------------------
+// ThreadTest7
+//      Semaphore solution to producer-consumer
+// @date   13 Oct 2019
+// @target lab3-exercise3&4
+// @brief  use Semaphore to represent slot
+//----------------------------------------------------------------------
+
+int slot = 24;
+int slotcnt = 0;
+Semaphore *sema = new Semaphore("empty", 0);
+Semaphore *nsema = new Semaphore("full", slot);
+
+void 
+sproducer(int val) 
+{
+    for(int i = 0; i < val; i++) {
+        if(slotcnt >= slot) {
+			printf("slot is full: thread %s %d cannot produce now\n", currentThread->getName(), currentThread->getTid());
+        }
+	    nsema->P();
+	    sema->V();
+        slotcnt++;
+	    printf("thread %s %d produce production\n", currentThread->getName(), currentThread->getTid());
+    }
+}
+
+void 
+sconsumer(int val)
+{
+    for(int i = 0; i < val; i++) {
+		if(slotcnt <= 0) {
+			printf("slot is empty: thread %s %d cannot consume now\n", currentThread->getName(), currentThread->getTid());
+		}
+	    sema->P();
+		slotcnt--;
+	    nsema->V();
+        printf("thread %s %d consume production\n", currentThread->getName(), currentThread->getTid());
+    }
+}
+
+void 
+ThreadTest7()
+{
+    DEBUG('t', "Entering ThreadTest7");
+    Thread *t1 = new Thread("producer1", 4);
+    Thread *t2 = new Thread("consumer1", 4);
+    Thread *t3 = new Thread("producer2", 4);
+    Thread *t4 = new Thread("consumer2", 4);
+    Thread *t5 = new Thread("consumer3", 4);
+
+    t1->Fork(sproducer, 32);
+    t2->Fork(sconsumer, 32);
+    t3->Fork(sproducer, 32);
+    t4->Fork(sconsumer, 32);
+    t5->Fork(sconsumer, 32);
+}
+
+//----------------------------------------------------------------------
+// ThreadTest8
+//      Condition solution to producer-consumer
+// @date   13 Oct 2019
+// @target lab3-exercise3&4
+// @brief  
+//----------------------------------------------------------------------
+
+Condition *ccond = new Condition("consume");
+Condition *pcond = new Condition("producer");
+Lock *pclock = new Lock("pclock");
+int srccnt = 0;
+
+void 
+cproducer(int val)
+{
+    for(int i = 0; i < val; i++) {
+	pclock->Acquire();
+	while(srccnt >= slot) {
+	    printf("slot is full: producer %s %d cannot produce\n", currentThread->getName(), currentThread->getTid());
+	    pcond->Wait(pclock);
+	}
+	printf("thread %s %d produce production\n", currentThread->getName(), currentThread->getTid());
+	srccnt++;
+	ccond->Signal(pclock);
+	pclock->Release();
+    }
+}
+
+void 
+cconsumer(int val)
+{
+    for(int i = 0; i < val; i++) {
+        pclock->Acquire();
+	while(srccnt <= 0) {
+	    printf("slot is empty: consumer %s %d cannot consume\n", currentThread->getName(), currentThread->getTid());
+	    ccond->Wait(pclock);
+	}
+	printf("thread %s %d consume production\n", currentThread->getName(), currentThread->getTid());
+	srccnt--;
+	pcond->Signal(pclock);
+	pclock->Release();
+    }
+}
+
+void 
+ThreadTest8()
+{
+    DEBUG('t', "Entering ThreadTest8");
+
+    Thread *t1 = new Thread("producer1", 4);
+    Thread *t2 = new Thread("consumer1", 4);
+    Thread *t3 = new Thread("producer2", 4);
+    Thread *t4 = new Thread("consumer2", 4);
+
+    t1->Fork(cproducer, 32);
+    t2->Fork(cconsumer, 32);
+    t3->Fork(cproducer, 32);
+    t4->Fork(cconsumer, 32);
+}
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -154,6 +287,15 @@ ThreadTest()
 	break;
     case 5:
 	ThreadTest5();
+	break;
+    case 6:
+	ThreadTest6();
+	break;
+    case 7:
+	ThreadTest7();
+	break;
+    case 8:
+	ThreadTest8();
 	break;
     default:
 	printf("No test specified.\n");
