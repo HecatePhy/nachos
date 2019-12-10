@@ -25,6 +25,7 @@
 #include "utility.h"
 #include "translate.h"
 #include "disk.h"
+#include "bitmap.h"
 
 // Definitions related to the size, and format of user memory
 
@@ -181,12 +182,19 @@ class Machine {
 
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
+    
     /* @date   10 Nov 2019
      * @target lab4-exercise3
      * @brief  define new mem func for TLB miss
      * */
     void TLBSwap(int vaddr);
     int tlb_miss, tlb_hit;
+
+    /* @date   10 Nov 2019
+     * @target lab4-exercise4
+     * @brief  add bitmap for physical memory
+     * */
+    BitMap *pbitmap;
 
   private:
     bool singleStep;		// drop back into the debugger after each
