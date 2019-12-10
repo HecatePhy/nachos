@@ -101,10 +101,10 @@ AddrSpace::AddrSpace(OpenFile *executable)
     
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
-    bzero(machine->mainMemory, size);
+    //bzero(machine->mainMemory, size); // lab4-exercise5 do not bzero
 
 // then, copy in the code and data segments into memory
-    if (noffH.code.size > 0) {
+    /*if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
         executable->ReadAt(&(machine->mainMemory[noffH.code.virtualAddr]),
@@ -115,6 +115,32 @@ AddrSpace::AddrSpace(OpenFile *executable)
 			noffH.initData.virtualAddr, noffH.initData.size);
         executable->ReadAt(&(machine->mainMemory[noffH.initData.virtualAddr]),
 			noffH.initData.size, noffH.initData.inFileAddr);
+    }*/
+    /* @date   10 Nov 2019
+     * @target lab4-exercise5
+     * @brief  copy code seg and data seg separately by physical page
+     * */
+    if (noffH.code.size > 0) {
+        DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
+			noffH.code.virtualAddr, noffH.code.size);
+	int pos = noffH.code.inFileAddr;
+	for(int j = 0; j < noffH.code.size; j++) {
+	    int tmp_vpn = (noffH.code.virtualAddr + j) / PageSize;
+	    int tmp_offset = (noffH.code.virtualAddr + j) % PageSize;
+	    int tmp_paddr = pageTable[tmp_vpn].physicalPage * PageSize + tmp_offset;
+	    executable->ReadAt(&(machine->mainMemory[tmp_paddr]), 1, pos++);
+	}
+    }
+    if (noffH.initDate.size > 0) {
+        DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
+			noffH.initData.virtualAddr, noffH.initData.size);
+	int pos = noffH.initData.inFileAddr;
+	for(int j = 0; i < noffH.initData.size; j++) {
+	    int tmp_vpn = (noffH.initData.virtualAddr + j) / PageSize;
+	    int tmp_offset = (noffH.initData.virtualAddr +j ) % PageSize;
+	    int tmp_paddr = pageTable[tmp_vpn].physicalPage * PageSize + tmp_offset;
+	    executable->ReadAt(&(machine->mainMemory[tmp_paddr]), 1, pos++);
+	}
     }
 
 }
@@ -170,7 +196,15 @@ AddrSpace::InitRegisters()
 //----------------------------------------------------------------------
 
 void AddrSpace::SaveState() 
-{}
+{
+    /* @date
+     * @target lab4-exercise5
+     * @brief  clear tlb when switching
+     * */
+    for (int i = 0; i < TLBSize; i++) { 
+        machine->tlb[i].valid = false;
+    }
+}
 
 //----------------------------------------------------------------------
 // AddrSpace::RestoreState
