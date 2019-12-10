@@ -181,6 +181,12 @@ class Machine {
 
     TranslationEntry *pageTable;
     unsigned int pageTableSize;
+    /* @date   10 Nov 2019
+     * @target lab4-exercise3
+     * @brief  define new mem func for TLB miss
+     * */
+    void TLBSwap(int vaddr);
+    int tlb_miss, tlb_hit;
 
   private:
     bool singleStep;		// drop back into the debugger after each

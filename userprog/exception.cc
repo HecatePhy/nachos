@@ -25,6 +25,8 @@
 #include "system.h"
 #include "syscall.h"
 
+void TLBMissHandler();
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -55,9 +57,43 @@ ExceptionHandler(ExceptionType which)
 
     if ((which == SyscallException) && (type == SC_Halt)) {
 	DEBUG('a', "Shutdown, initiated by user program.\n");
+	/* @date   10 Nov 2019
+	 * @target lab4-exercise3
+	 * @brief  print tlb miss hit num
+	 * */
+	float tlb_hit_rate = machine->tlb_hit * 1.0 / (machine->tlb_miss + machine->tlb_hit);
+	printf("TLB STATUS:\n");
+	printf("tlb_miss: %d tlb_hit: %d tlb_hit_rate: %f\n", machine->tlb_miss, machine->tlb_hit, tlb_hit_rate);
    	interrupt->Halt();
-    } else {
+    }
+    /* @date   10 Nov 2019
+     * @target lab4-exercise2
+     * @brief  handle page fault exception
+     * */
+    else if(which == PageFaultException) {
+        if(machine->tlb != NULL) {
+	    // tlb miss
+	    // printf("tlb miss\n");
+	    TLBMissHandler();
+	}
+	else {
+	    // printf("page fault\n");
+	    // pagetable miss
+	}
+    } 
+    else {
 	printf("Unexpected user mode exception %d %d\n", which, type);
 	ASSERT(FALSE);
     }
+}
+
+/* @date   10 Nov 2019
+ * @target lab4-exercise2 
+ * @brief  tlb miss exception handler
+ * */
+void
+TLBMissHandler()
+{
+    int vaddr = machine->ReadRegister(BadVAddrReg); // BadVAddrReg records vaddr in RaiseException
+    machine->TLBSwap(vaddr);
 }

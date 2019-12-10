@@ -56,6 +56,13 @@ Machine::Machine(bool debug)
 {
     int i;
 
+    /* @date   10 Nov 2019
+     * @target lab4-exercise3
+     * @brief  initialize tlb miss hit num 
+     * */
+    tlb_miss = 0;
+    tlb_hit = 0;
+
     for (i = 0; i < NumTotalRegs; i++)
         registers[i] = 0;
     mainMemory = new char[MemorySize];

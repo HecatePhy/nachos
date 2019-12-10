@@ -40,6 +40,13 @@ class TranslationEntry {
 			// page is referenced or modified.
     bool dirty;         // This bit is set by the hardware every time the
 			// page is modified.
+    
+    /* @date   10 Nov 2019
+     * @target lab4-exercise3
+     * @brief  new attributes for FIFO & LRU
+     * */
+    int inTime;         // time first in
+    int useTime;        // time last use
 };
 
 #endif

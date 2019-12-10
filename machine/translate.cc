@@ -195,12 +195,12 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
 
 // check for alignment errors
     if (((size == 4) && (virtAddr & 0x3)) || ((size == 2) && (virtAddr & 0x1))){
-	DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
-	return AddressErrorException;
+	    DEBUG('a', "alignment problem at %d, size %d!\n", virtAddr, size);
+	    return AddressErrorException;
     }
     
     // we must have either a TLB or a page table, but not both!
-    ASSERT(tlb == NULL || pageTable == NULL);	
+    //ASSERT(tlb == NULL || pageTable == NULL);	
     ASSERT(tlb != NULL || pageTable != NULL);	
 
 // calculate the virtual page number, and offset within the page,
@@ -222,34 +222,96 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     } else {
         for (entry = NULL, i = 0; i < TLBSize; i++)
     	    if (tlb[i].valid && (tlb[i].virtualPage == vpn)) {
-		entry = &tlb[i];			// FOUND!
+	        entry = &tlb[i];			// FOUND!
+                
+                /* @date   10 Nov 2019
+                 * @target lab4-exercise3
+                 * @brief  hit and update last used time for LRU
+                 * */
+                tlb[i].useTime = stats->totalTicks;
+		tlb_hit++;
+
 		break;
 	    }
-	if (entry == NULL) {				// not found
-    	    DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
-    	    return PageFaultException;		// really, this is a TLB fault,
-						// the page may be in memory,
-						// but not in the TLB
-	}
+	    if (entry == NULL) {				// not found
+    	        DEBUG('a', "*** no valid TLB entry found for this virtual page!\n");
+		tlb_miss++;
+    	        return PageFaultException;		// really, this is a TLB fault,
+						                    // the page may be in memory,
+						                    // but not in the TLB
+	    }
     }
 
     if (entry->readOnly && writing) {	// trying to write to a read-only page
-	DEBUG('a', "%d mapped read-only at %d in TLB!\n", virtAddr, i);
-	return ReadOnlyException;
+	    DEBUG('a', "%d mapped read-only at %d in TLB!\n", virtAddr, i);
+	    return ReadOnlyException;
     }
     pageFrame = entry->physicalPage;
 
     // if the pageFrame is too big, there is something really wrong! 
     // An invalid translation was loaded into the page table or TLB. 
     if (pageFrame >= NumPhysPages) { 
-	DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
-	return BusErrorException;
+	    DEBUG('a', "*** frame %d > %d!\n", pageFrame, NumPhysPages);
+	    return BusErrorException;
     }
     entry->use = TRUE;		// set the use, dirty bits
     if (writing)
-	entry->dirty = TRUE;
+	    entry->dirty = TRUE;
     *physAddr = pageFrame * PageSize + offset;
     ASSERT((*physAddr >= 0) && ((*physAddr + size) <= MemorySize));
     DEBUG('a', "phys addr = 0x%x\n", *physAddr);
     return NoException;
+}
+
+/* @date   10 Nov 2019
+ * @target lab4-exercise3
+ * @brief  TLB miss swap 3 algos: FIFO LRU
+ * */
+void
+Machine::TLBSwap(int vaddr)
+{
+    char type = 'l';
+    int vpn = (unsigned) vaddr / PageSize;
+    int position = -1;
+    int mintime = -1;
+
+    // FIFO
+    if(type == 'f') {
+        for(int i = 0; i < TLBSize; i++){
+            if(tlb[i].valid == false) {
+                position = i;
+                mintime = -2;
+                break;
+            }
+            if(mintime == -1 || tlb[i].inTime < mintime) {
+                mintime = tlb[i].inTime;
+                position = i;
+            }
+        }
+    }
+    // LRU
+    else if(type == 'l') {
+        for(int i = 0; i < TLBSize; i++) {
+            if(tlb[i].valid == false) {
+                position = i;
+                mintime = -2;
+            }
+            if(mintime == -1 || tlb[i].useTime < mintime) {
+                mintime = tlb[i].useTime;
+                position = i;
+            }
+        }
+    }
+
+    // swap
+    if(mintime == -2) {
+        tlb[position].valid = true;
+    }
+    tlb[position].virtualPage = vpn;
+    // warning!!! only correct for original NachOS(vpn is index of pagetable)
+    tlb[position].physicalPage = pageTable[vpn].physicalPage;
+    tlb[position].use = false;
+    tlb[position].dirty = false;
+    tlb[position].readOnly = false;
+    tlb[position].inTime = stats->totalTicks;
 }
