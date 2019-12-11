@@ -309,9 +309,72 @@ Machine::TLBSwap(int vaddr)
     }
     tlb[position].virtualPage = vpn;
     // warning!!! only correct for original NachOS(vpn is index of pagetable)
-    tlb[position].physicalPage = pageTable[vpn].physicalPage;
+    // tlb[position].physicalPage = pageTable[vpn].physicalPage;
+    /* @date   10 Nov 2019
+     * @target lab4-exercise6
+     * @brief  allocate physical page if not in physical page
+     * */
+    bool flag = false;
+    for (int i = 0; i < NumPhysPages; i++) {
+        if (ipagetable[i].tid == currentThread->getTid() && ipagetable[i].virtualPage == vpn) {
+	    tlb[position].physicalPage = i;
+	    flag = true;
+	}
+    }
+    if (flag == false) {
+        tlb[position].physicalPage = PageSwap(vpn);
+    }
     tlb[position].use = false;
     tlb[position].dirty = false;
     tlb[position].readOnly = false;
     tlb[position].inTime = stats->totalTicks;
+}
+
+/* @date   10 Nov 2019
+ * @target lab4-exercise6
+ * @brief  swap page into physical mem: FIFO
+ * */
+int 
+Machine::PageSwap(int vpn) 
+{
+    OpenFile *executable = fileSystem->Open(currentThread->fexecutable);
+
+    int pos = pbitmap->Find();
+    if (pos == -1) {
+	int mintime = -1;
+        for (int i = 0; i < NumPhysPages; i++) {
+	    if(mintime == -1 || ipagetable[i].useTime < mintime) {
+	        mintime = ipagetable[i].useTime;
+		pos = i;
+	    }
+	}
+	if (ipagetable[pos].dirty == true) {
+            int old_tid = ipagetable[pos].tid;	
+            OpenFile *old_executable = fileSystem->Open(ttable[old_tid]->fexecutable);  
+	    int vaddr = ipagetable[pos].virtualPage * PageSize;
+	    for (int j = 0; j < PageSize; j++) {
+		int tmp_paddr = pos * PageSize + j;
+	        old_executable->WriteAt(&(mainMemory[tmp_paddr]), 1, vaddr ++);
+	    }
+	    delete old_executable;
+	}
+    }
+
+    ipagetable[pos].valid = true;
+    ipagetable[pos].virtualPage = vpn;
+    ipagetable[pos].tid = currentThread->getTid();
+    ipagetable[pos].use = false;
+    ipagetable[pos].dirty = false;
+    ipagetable[pos].readOnly = false;
+    ipagetable[pos].useTime = stats->totalTicks;
+
+    int vaddr = vpn * PageSize;
+    for (int j = 0; j < PageSize; j++) {
+        int tmp_paddr = pos * PageSize + j;
+	executable->ReadAt(&(mainMemory[tmp_paddr]), 1, vaddr ++);
+    }
+
+    delete executable;
+
+    return pos;
 }

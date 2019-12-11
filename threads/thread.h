@@ -110,6 +110,12 @@ class Thread {
     int getUid() { return uid; }
     int getPriority() { return priority; }
 
+    /* @date   10 Nov 2019
+     * @target lab4-exercise6&7
+     * @brief  add executable file name
+     * */
+    char *fexecutable;
+
   private:
     // some of the private data for this class is listed above
     

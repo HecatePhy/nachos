@@ -78,10 +78,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
     numPages = divRoundUp(size, PageSize);
     size = numPages * PageSize;
 
-    ASSERT(numPages <= NumPhysPages);		// check we're not trying
+    //ASSERT(numPages <= NumPhysPages);		// check we're not trying
 						// to run anything too big --
 						// at least until we have
 						// virtual memory
+						// no use after lab4-exercise6
 
     DEBUG('a', "Initializing address space, num pages %d, size %d\n", 
 					numPages, size);
@@ -90,14 +91,15 @@ AddrSpace::AddrSpace(OpenFile *executable)
     for (i = 0; i < numPages; i++) {
 	pageTable[i].virtualPage = i;	// for now, virtual page # = phys page #
 	//pageTable[i].physicalPage = i;
-	pageTable[i].physicalPage = machine->pbitmap->Find(); // for lab4-exercise4 tmp 
+	//pageTable[i].physicalPage = machine->pbitmap->Find(); // for lab4-exercise4 tmp
+	pageTable[i].physicalPage = -1; // for lab4-exercise6 
 	pageTable[i].valid = TRUE;
 	pageTable[i].use = FALSE;
 	pageTable[i].dirty = FALSE;
 	pageTable[i].readOnly = FALSE;  // if the code segment was entirely on 
 					// a separate page, we could set its 
 					// pages to be read-only
-    }
+    } // no use after lab4-challenge2
     
 // zero out the entire address space, to zero the unitialized data segment 
 // and the stack segment
@@ -120,7 +122,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
      * @target lab4-exercise5
      * @brief  copy code seg and data seg separately by physical page
      * */
-    if (noffH.code.size > 0) {
+    /*if (noffH.code.size > 0) {
         DEBUG('a', "Initializing code segment, at 0x%x, size %d\n", 
 			noffH.code.virtualAddr, noffH.code.size);
 	int pos = noffH.code.inFileAddr;
@@ -131,7 +133,7 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	    executable->ReadAt(&(machine->mainMemory[tmp_paddr]), 1, pos++);
 	}
     }
-    if (noffH.initDate.size > 0) {
+    if (noffH.initData.size > 0) {
         DEBUG('a', "Initializing data segment, at 0x%x, size %d\n",
 			noffH.initData.virtualAddr, noffH.initData.size);
 	int pos = noffH.initData.inFileAddr;
@@ -141,7 +143,11 @@ AddrSpace::AddrSpace(OpenFile *executable)
 	    int tmp_paddr = pageTable[tmp_vpn].physicalPage * PageSize + tmp_offset;
 	    executable->ReadAt(&(machine->mainMemory[tmp_paddr]), 1, pos++);
 	}
-    }
+    }*/
+    /* @date   10 Nov 2019
+     * @target lab4-exercise7 &challenge2
+     * @brief  not copy (copy only the code seg is also good)
+     * */
 
 }
 

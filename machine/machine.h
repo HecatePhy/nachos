@@ -196,6 +196,13 @@ class Machine {
      * */
     BitMap *pbitmap;
 
+    /* @date   10 Nov 2019
+     * @target lab4-challenge2
+     * @brief  inverted pagetable & page swap func
+     * */
+    PageTableEntry *ipagetable;
+    int PageSwap(int vpn);
+
   private:
     bool singleStep;		// drop back into the debugger after each
 				// simulated instruction

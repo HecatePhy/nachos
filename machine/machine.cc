@@ -57,13 +57,23 @@ Machine::Machine(bool debug)
     int i;
 
     /* @date   10 Nov 2019
-     * @target lab4-exercise3&4
-     * @brief  initialize tlb miss hit num bitmap 
+     * @target lab4-exercise3&4 &challenge2
+     * @brief  initialize tlb miss hit num bitmap ipagetable
      * */
     tlb_miss = 0;
     tlb_hit = 0;
 
     pbitmap = new BitMap(32);
+
+    ipagetable = new PageTableEntry[NumPhysPages];
+    for (i = 0; i < NumPhysPages; i++) {
+        ipagetable[i].virtualPage = -1;
+	ipagetable[i].tid = -1;
+	ipagetable[i].valid = false;
+	ipagetable[i].use = false;
+	ipagetable[i].dirty = false;
+	ipagetable[i].readOnly = false;
+    }
 
     for (i = 0; i < NumTotalRegs; i++)
         registers[i] = 0;

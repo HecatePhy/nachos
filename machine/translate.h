@@ -49,4 +49,20 @@ class TranslationEntry {
     int useTime;        // time last use
 };
 
+/* @date   10 Nov 2019
+ * @target lab4-challenge2
+ * @brief  inverted page table entry: must record thread id
+ * */
+class PageTableEntry {
+  public:
+    int virtualPage;
+    int tid;
+
+    bool valid;
+    bool readOnly;
+    bool use;
+    bool dirty;
+    int useTime;
+};
+
 #endif

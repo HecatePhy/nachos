@@ -33,6 +33,12 @@ StartProcess(char *filename)
     space = new AddrSpace(executable);    
     currentThread->space = space;
 
+    /* @date   10 Nov 2019
+     * @target lab4-exercise6&7
+     * @brief  record thread filename
+     * */
+    currentThread->fexecutable = filename;
+
     delete executable;			// close file
 
     space->InitRegisters();		// set the initial register values
